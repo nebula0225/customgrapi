@@ -9,7 +9,7 @@ except ImportError:
 
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 from instagrapi.exceptions import (
     ClientBadRequestError,
@@ -136,11 +136,11 @@ class PublicRequestMixin:
         try:
             if data is not None:  # POST
                 response = self.public.data(
-                    url, data=data, params=params, proxies=self.public.proxies
+                    url, data=data, params=params, proxies=self.public.proxies, timeout=5
                 )
             else:  # GET
                 response = self.public.get(
-                    url, params=params, proxies=self.public.proxies
+                    url, params=params, proxies=self.public.proxies, timeout=5
                 )
 
             expected_length = int(response.headers.get("Content-Length") or 0)
