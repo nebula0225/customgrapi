@@ -1,5 +1,5 @@
 import time
-from ...h_common import get_rotate_proxy
+import h_common as common
 from typing import List, Tuple
 
 from ..exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError
@@ -197,7 +197,7 @@ class HashtagMixin:
                     # change proxy
                     print()
                     print(f"[에러]ClientUnauthorizedError : {e}")
-                    new_proxy = get_rotate_proxy()
+                    new_proxy = common.get_rotate_proxy()
                     print(f"new proxy : {new_proxy}")
                     self.public.proxies = new_proxy
                     print()
