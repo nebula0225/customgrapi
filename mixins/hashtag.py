@@ -1,14 +1,15 @@
 import time
+from ...h_common import get_rotate_proxy
 from typing import List, Tuple
 
-from instagrapi.exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError
-from instagrapi.extractors import (
+from ..exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError
+from ..extractors import (
     extract_hashtag_gql,
     extract_hashtag_v1,
     extract_media_gql,
     extract_media_v1,
 )
-from instagrapi.types import Hashtag, Media
+from ..types import Hashtag, Media
 
 
 class HashtagMixin:
@@ -192,13 +193,16 @@ class HashtagMixin:
                     print(f"continue next node")
                     print()
                     continue
-                # except ClientUnauthorizedError as e:
-                #     # change proxy
-                #     print()
-                #     print(f"[에러]ClientUnauthorizedError : {e}")
-                #     print()
-                #     time.sleep(10)
-                #     continue
+                except ClientUnauthorizedError as e:
+                    # change proxy
+                    print()
+                    print(f"[에러]ClientUnauthorizedError : {e}")
+                    new_proxy = get_rotate_proxy()
+                    print(f"new proxy : {new_proxy}")
+                    self.public.proxies = new_proxy
+                    print()
+                    time.sleep(10)
+                    continue
             ######################################################
             # infinity loop in hashtag_medias_top_a1
             # https://github.com/adw0rd/instagrapi/issues/52
