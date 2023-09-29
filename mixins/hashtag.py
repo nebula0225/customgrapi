@@ -1,5 +1,3 @@
-import time
-import h_common as common
 from typing import List, Tuple
 
 from ..exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError
@@ -11,6 +9,7 @@ from ..extractors import (
 )
 from ..types import Hashtag, Media
 
+import h_common as common
 
 class HashtagMixin:
     """
@@ -173,8 +172,6 @@ class HashtagMixin:
             end_cursor = page_info["end_cursor"]
             edges = data[tab_key]["edges"]
             for edge in edges:
-                # if max_amount and len(medias) >= max_amount:
-                #     break
                 # check uniq
                 media_pk = edge["node"]["id"]
                 if media_pk in unique_set:
@@ -192,15 +189,16 @@ class HashtagMixin:
                     print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
                     print(f"continue next node")
                     print()
+                    continue
                 except ClientUnauthorizedError as e:
                     # change proxy
                     print()
                     print(f"[에러]ClientUnauthorizedError : {e}")
                     new_proxy = common.get_rotate_proxy()
-                    self.public.proxies = new_proxy
-                    time.sleep(10)
+                    self.set_proxy(new_proxy)
                     medias.append(self.media_info_gql(media_pk))
                     print()
+                    continue
             ######################################################
             # infinity loop in hashtag_medias_top_a1
             # https://github.com/adw0rd/instagrapi/issues/52
