@@ -35,7 +35,7 @@ class PublicRequestMixin:
     last_public_response = None
     last_public_json = {}
     public_request_logger = logging.getLogger("public_request")
-    request_timeout = 1
+    request_timeout = 2
     last_response_ts = 0
 
     def __init__(self, *args, **kwargs):

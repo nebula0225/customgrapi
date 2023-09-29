@@ -192,17 +192,15 @@ class HashtagMixin:
                     print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
                     print(f"continue next node")
                     print()
-                    continue
                 except ClientUnauthorizedError as e:
                     # change proxy
                     print()
                     print(f"[에러]ClientUnauthorizedError : {e}")
                     new_proxy = common.get_rotate_proxy()
-                    print(f"new proxy : {new_proxy}")
                     self.public.proxies = new_proxy
-                    print()
                     time.sleep(10)
-                    continue
+                    medias.append(self.media_info_gql(media_pk))
+                    print()
             ######################################################
             # infinity loop in hashtag_medias_top_a1
             # https://github.com/adw0rd/instagrapi/issues/52
