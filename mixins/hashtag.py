@@ -9,6 +9,7 @@ from ..extractors import (
 )
 from ..types import Hashtag, Media
 
+import time
 import h_common as common
 
 class HashtagMixin:
