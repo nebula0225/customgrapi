@@ -183,23 +183,24 @@ class HashtagMixin:
                 # if f"#{name}" not in media.caption_text:
                 #     continue
                 # Enrich media: Full user, usertags and video_url
-                try:
-                    medias.append(self.media_info_gql(media_pk))
-                except MediaNotFound as e:
-                    print()
-                    print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
-                    print(f"continue next node")
-                    print()
-                    continue
-                except ClientUnauthorizedError as e:
-                    # change proxy
-                    print()
-                    print(f"[에러]ClientUnauthorizedError : {e}")
-                    new_proxy = common.get_rotate_proxy()
-                    self.set_proxy(new_proxy)
-                    medias.append(self.media_info_gql(media_pk))
-                    print()
-                    continue
+                while 1:
+                    try:
+                        medias.append(self.media_info_gql(media_pk))
+                        break
+                    except MediaNotFound as e:
+                        print()
+                        print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
+                        print(f"continue next node")
+                        print()
+                        break
+                    except ClientUnauthorizedError as e:
+                        # change to new proxy
+                        print()
+                        print(f"[에러]ClientUnauthorizedError : 401 Client Error: Unauthorized for url")
+                        new_proxy = common.get_rotate_proxy()
+                        self.set_proxy(new_proxy)
+                        print()
+                        time.sleep(2)
             ######################################################
             # infinity loop in hashtag_medias_top_a1
             # https://github.com/adw0rd/instagrapi/issues/52
