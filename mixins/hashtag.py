@@ -173,11 +173,20 @@ class HashtagMixin:
             end_cursor = page_info["end_cursor"]
             edges = data[tab_key]["edges"]
             for edge in edges:
-                # check uniq
                 media_pk = edge["node"]["id"]
+                
+                # check uniq
                 if media_pk in unique_set:
                     continue
-                unique_set.add(media_pk)
+                else:
+                    unique_set.add(media_pk)
+                
+                # check spam
+                if len(edge['node']['edge_media_to_caption']['edges']) != 0:
+                    caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
+                    if common.check_spam(caption, caption) == True:
+                        continue
+                
                 # check contains hashtag in caption
                 # media = extract_media_gql(edge["node"])
                 # if f"#{name}" not in media.caption_text:
