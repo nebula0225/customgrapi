@@ -6,7 +6,7 @@ from json.decoder import JSONDecodeError
 
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 from instagrapi import config
 from instagrapi.exceptions import (
