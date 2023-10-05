@@ -136,7 +136,8 @@ class HashtagMixin:
         ]
 
     def hashtag_medias_a1_chunk(
-        self, name: str, max_amount: int = 27, tab_key: str = "", end_cursor: str = None
+        self, name: str, user_id_set:set,
+        tab_key: str = "", end_cursor: str = None
     ) -> Tuple[List[Media], str]:
         """
         Get chunk of medias and end_cursor by Public Web API
@@ -145,8 +146,10 @@ class HashtagMixin:
         ----------
         name: str
             Name of the hashtag
-        max_amount: int, optional
+        [NOT USE]max_amount: int, optional
             Maximum number of media to return, default is 27
+        user_id_set: set
+            check exist user
         tab_key: str, optional
             Tab Key, default value is ""
         end_cursor: str, optional
@@ -156,6 +159,7 @@ class HashtagMixin:
         -------
         Tuple[List[Media], str]
             List of objects of Media and end_cursor
+            has_next_page:boolean
         """
         assert tab_key in (
             "edge_hashtag_to_top_posts",
@@ -171,15 +175,24 @@ class HashtagMixin:
                 
             page_info = data["edge_hashtag_to_media"]["page_info"]
             end_cursor = page_info["end_cursor"]
+            has_next_page = page_info["has_next_page"] # True, False
             edges = data[tab_key]["edges"]
             for edge in edges:
                 media_pk = edge["node"]["id"]
+                user_id = edge['node']['owner']['id'] # meida's owner id = user id
                 
                 # check uniq
                 if media_pk in unique_set:
                     continue
                 else:
                     unique_set.add(media_pk)
+                    
+                # check exist user id
+                if user_id in user_id_set:
+                    print(f"[PASS]exist user_id : {user_id}")
+                    continue
+                else:
+                    user_id_set.add(user_id)
                 
                 # check spam
                 if len(edge['node']['edge_media_to_caption']['edges']) != 0:
@@ -223,7 +236,7 @@ class HashtagMixin:
             # if max_amount and len(medias) >= max_amount:
             #     break
             break
-        return medias, end_cursor
+        return medias, end_cursor, has_next_page
 
     def hashtag_medias_a1(
         self, name: str, amount: int = 27, tab_key: str = ""
