@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 from .mixins.account import AccountMixin
 from .mixins.album import DownloadAlbumMixin, UploadAlbumMixin
@@ -40,8 +41,6 @@ from .mixins.totp import TOTPMixin
 from .mixins.track import TrackMixin
 from .mixins.user import UserMixin
 from .mixins.video import DownloadVideoMixin, UploadVideoMixin
-
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 # Used as fallback logger if another is not provided.
 DEFAULT_LOGGER = logging.getLogger("instagrapi")
