@@ -136,7 +136,7 @@ class HashtagMixin:
         ]
 
     def hashtag_medias_a1_chunk(
-        self, name: str, user_id_set:set,
+        self, name: str, user_id_set:set, caption_set:set,
         tab_key: str = "", end_cursor: str = None
     ) -> Tuple[List[Media], str]:
         """
@@ -188,17 +188,22 @@ class HashtagMixin:
                     unique_set.add(media_pk)
                     
                 # check exist user id
-                if user_id in user_id_set:
+                if str(user_id) in user_id_set:
                     print(f"[PASS]exist user_id : {user_id}")
                     continue
-                else:
-                    user_id_set.add(user_id)
                 
-                # check spam
+                # check caption
                 if len(edge['node']['edge_media_to_caption']['edges']) != 0:
                     caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
-                    if common.check_spam(caption, caption) == True:
-                        continue
+                    if caption != "":
+                        if common.check_spam(caption, caption) == True:
+                            print(f"[PASS]spam caption : {user_id}")
+                            continue
+                    
+                        # check exist caption
+                        if caption in caption_set:
+                            print(f"[PASS]exist caption : {user_id}")
+                            continue
                 
                 # check contains hashtag in caption
                 # media = extract_media_gql(edge["node"])
