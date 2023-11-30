@@ -188,7 +188,7 @@ class HashtagMixin:
                     unique_set.add(media_pk)
                     
                 # check exist user id
-                if str(user_id) in user_id_set:
+                if str(user_id) in user_id_set or user_id in user_id_set:
                     print(f"[PASS]exist user_id : {user_id}")
                     continue
                 
@@ -201,7 +201,7 @@ class HashtagMixin:
                             continue
                     
                         # check exist caption
-                        if caption in caption_set:
+                        if caption in caption_set or str(caption) in caption_set:
                             print(f"[PASS]exist caption : {user_id}")
                             continue
                 
