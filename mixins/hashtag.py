@@ -188,9 +188,11 @@ class HashtagMixin:
                     unique_set.add(media_pk)
                     
                 # check exist user id
-                if str(user_id) in user_id_set or user_id in user_id_set:
+                if user_id in user_id_set:
                     print(f"[PASS]exist user_id : {user_id}")
                     continue
+                else:
+                    user_id_set.add(user_id)
                 
                 # check caption
                 if len(edge['node']['edge_media_to_caption']['edges']) != 0:
