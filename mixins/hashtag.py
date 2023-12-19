@@ -70,7 +70,8 @@ class HashtagMixin:
         )
         if not data.get("hashtag"):
             raise HashtagNotFound(name=name, **data)
-        return extract_hashtag_gql(data["hashtag"])
+        # return extract_hashtag_gql(data["hashtag"])
+        return data["hashtag"]
 
     def hashtag_info_v1(self, name: str) -> Hashtag:
         """
@@ -168,15 +169,17 @@ class HashtagMixin:
         unique_set = set()
         medias = []
         while True:
-            data = self.public_a1_request(
-                f"/explore/tags/{name}/",
-                params={"max_id": end_cursor} if end_cursor else {},
-            )["hashtag"]
+            # data = self.public_a1_request(
+            #     f"/explore/tags/{name}/",
+            #     params={"max_id": end_cursor} if end_cursor else {},
+            # )["hashtag"]
+            data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
                 
             page_info = data["edge_hashtag_to_media"]["page_info"]
             end_cursor = page_info["end_cursor"]
             has_next_page = page_info["has_next_page"] # True, False
             edges = data[tab_key]["edges"]
+            print(f"get edge data : {len(edges)}")
             for edge in edges:
                 media_pk = edge["node"]["id"]
                 user_id = edge['node']['owner']['id'] # meida's owner id = user id
