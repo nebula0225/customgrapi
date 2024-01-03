@@ -138,7 +138,7 @@ class HashtagMixin:
 
     def hashtag_medias_a1_chunk(
         self, name: str, user_id_set:set, caption_set:set,
-        tab_key: str = "", end_cursor: str = None
+        tab_key: str = "", end_cursor: str = None, check_spam:bool = True
     ) -> Tuple[List[Media], str]:
         """
         Get chunk of medias and end_cursor by Public Web API
@@ -198,7 +198,7 @@ class HashtagMixin:
                     user_id_set.add(user_id)
                 
                 # check caption
-                if len(edge['node']['edge_media_to_caption']['edges']) != 0:
+                if len(edge['node']['edge_media_to_caption']['edges']) != 0 and check_spam == True:
                     caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
                     if caption != "":
                         if common.check_spam(caption, caption) == True:
