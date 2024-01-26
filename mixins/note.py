@@ -1,6 +1,6 @@
 import uuid
 
-from instagrapi.types import NoteRequest
+# from instagrapi.types import NoteRequest
 
 
 class NoteMixin:
@@ -27,11 +27,11 @@ class NoteMixin:
             with_signature=False,
         )
 
-    def send_note(self, note_content: str, audience: int) -> NoteRequest:
-        assert self.user_id, "Login required"
-        data = {"text": note_content, "uuid": uuid.uuid4(), "audience": audience}
-        return self.private_request(
-            "notes/create_note",
-            data=self.with_default_data(data),
-            with_signature=False,
-        )
+    # def send_note(self, note_content: str, audience: int) -> NoteRequest:
+    #     assert self.user_id, "Login required"
+    #     data = {"text": note_content, "uuid": uuid.uuid4(), "audience": audience}
+    #     return self.private_request(
+    #         "notes/create_note",
+    #         data=self.with_default_data(data),
+    #         with_signature=False,
+    #     )
