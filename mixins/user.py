@@ -143,6 +143,23 @@ class UserMixin:
         """
         username = str(username).lower()
         return extract_user_gql(self.public_a1_request(f"/{username!s}/")["user"])
+    
+    def user_info_by_username_gql2(self, username: str) -> User:
+        """
+        Get user object from user name
+
+        Parameters
+        ----------
+        username: str
+            User name of an instagram account
+
+        Returns
+        -------
+        User
+            An object of User type
+        """
+        username = str(username).lower()
+        return self.public_get_userinfo(username, {"X-IG-App-ID": "936619743392459"})
 
     def user_info_by_username_v1(self, username: str) -> User:
         """

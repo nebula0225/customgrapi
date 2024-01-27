@@ -12,7 +12,7 @@ def validate_external_url(cls, v):
 
 class Resource(BaseModel):
     pk: str
-    video_url: Optional[HttpUrl]  # for Video and IGTV
+    # video_url: Optional[HttpUrl]  # for Video and IGTV
     thumbnail_url: HttpUrl
     media_type: int
 
@@ -77,10 +77,10 @@ class UserShort(BaseModel):
     username: Optional[str]
     full_name: Optional[str] = ""
     profile_pic_url: Optional[HttpUrl]
-    profile_pic_url_hd: Optional[HttpUrl]
-    is_private: Optional[bool]
+    # profile_pic_url_hd: Optional[HttpUrl]
+    is_private: Optional[bool] = None
     # is_verified: bool  # not found in hashtag_medias_v1
-    stories: List = []
+    # stories: List = []
 
 
 class Usertag(BaseModel):
@@ -99,8 +99,8 @@ class Location(BaseModel):
     address: Optional[str] = ""
     city: Optional[str] = ""
     zip: Optional[str] = ""
-    lng: Optional[float]
-    lat: Optional[float]
+    # lng: Optional[float]
+    # lat: Optional[float]
     external_id: Optional[int]
     external_id_source: Optional[str]
     # address_json: Optional[dict] = {}
@@ -116,20 +116,20 @@ class Media(BaseModel):
     media_type: int
     image_versions2: Optional[dict] = {}
     product_type: Optional[str] = ""  # igtv or feed
-    thumbnail_url: Optional[HttpUrl]
+    # thumbnail_url: Optional[HttpUrl]
     location: Optional[Location] = None
     user: UserShort
     comment_count: Optional[int] = 0
     comments_disabled: Optional[bool] = False
     commenting_disabled_for_viewer: Optional[bool] = False
     like_count: int
-    play_count: Optional[int]
-    has_liked: Optional[bool]
+    play_count: Optional[int] = None
+    has_liked: Optional[bool] = None
     caption_text: str
-    accessibility_caption: Optional[str]
+    # accessibility_caption: Optional[str]
     usertags: List[Usertag]
     sponsor_tags: List[UserShort]
-    video_url: Optional[HttpUrl]  # for Video and IGTV
+    video_url: Optional[HttpUrl] = None # for Video and IGTV
     view_count: Optional[int] = 0  # for Video and IGTV
     video_duration: Optional[float] = 0.0  # for Video and IGTV
     title: Optional[str] = ""

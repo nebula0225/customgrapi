@@ -65,11 +65,10 @@ class PublicRequestMixin:
             {
                 "Connection": "Keep-Alive",
                 "Accept": "*/*",
-                "Accept-Encoding": "gzip,deflate",
+                "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "en-US",
                 "User-Agent": (
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 "
-                    "(KHTML, like Gecko) Version/11.1.2 Safari/605.1.15"
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15"
                 ),
             }
         )
@@ -219,6 +218,29 @@ class PublicRequestMixin:
         )
         try:
             return response["graphql"]
+        except KeyError as e:
+            error_type = response.get("error_type")
+            if error_type == "generic_request_error":
+                raise GenericRequestError(
+                    json_value(response, "errors", "error", 0, default=error_type),
+                    **response
+                )
+            raise e
+        
+    def public_get_userinfo(self, username, add_headers):
+        url = self.PUBLIC_API_URL + f"api/v1/users/web_profile_info/?username={username}"
+        headers = {
+            "X-IG-WWW-Claim": "0",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        headers.update(add_headers)
+            
+        response = self.public_request(
+            url, headers=headers, return_json=True
+        )
+        
+        try:
+            return response["data"]["user"]
         except KeyError as e:
             error_type = response.get("error_type")
             if error_type == "generic_request_error":

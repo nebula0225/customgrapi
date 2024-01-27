@@ -217,7 +217,8 @@ class HashtagMixin:
                 # Enrich media: Full user, usertags and video_url
                 while 1:
                     try:
-                        medias.append(self.media_info_gql(media_pk))
+                        media_res = self.media_info_gql(media_pk)
+                        medias.append(media_res)
                         break
                     except MediaNotFound as e:
                         print()
