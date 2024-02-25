@@ -159,7 +159,12 @@ class UserMixin:
             An object of User type
         """
         username = str(username).lower()
-        return self.public_get_userinfo(username, {"X-IG-App-ID": "936619743392459"})
+        return self.public_get_userinfo(username, 
+                                            {
+                                                "X-IG-App-ID": "936619743392459",
+                                                "X-Csrftoken": "pnGnOnuDyXusM9RDsgZLUE"
+                                            }
+                                        )
 
     def user_info_by_username_v1(self, username: str) -> User:
         """
