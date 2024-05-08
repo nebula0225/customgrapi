@@ -87,6 +87,10 @@ class Usertag(BaseModel):
     user: UserShort
     x: float
     y: float
+    
+class CommentUsers(BaseModel):
+    user: UserShort
+    text: str
 
 
 class Location(BaseModel):
@@ -128,6 +132,7 @@ class Media(BaseModel):
     caption_text: str
     # accessibility_caption: Optional[str]
     usertags: List[Usertag]
+    comment_users: List[CommentUsers]
     sponsor_tags: List[UserShort]
     video_url: Optional[HttpUrl] = None # for Video and IGTV
     view_count: Optional[int] = 0  # for Video and IGTV

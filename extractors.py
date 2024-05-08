@@ -29,6 +29,7 @@ from .types import (
     User,
     UserShort,
     Usertag,
+    CommentUsers
 )
 from .utils import InstagramIdCodec, json_value
 
@@ -142,6 +143,10 @@ def extract_media_gql(data):
         caption_text=json_value(
             media, "edge_media_to_caption", "edges", 0, "node", "text", default=""
         ),
+        comment_users=[
+            extract_comment_users(comment_user["node"])
+            for comment_user in media.get("edge_media_to_comment", {}).get("edges", [])
+        ],
         usertags=sorted(
             [
                 extract_usertag(usertag["node"])
@@ -178,6 +183,12 @@ def extract_resource_v1(data):
 def extract_resource_gql(data):
     data["media_type"] = MEDIA_TYPES_GQL[data["__typename"]]
     return Resource(pk=data["id"], thumbnail_url=data["display_url"], **data)
+
+
+def extract_comment_users(data):
+    """Extract commented users"""
+    text = data.get("text", "")
+    return CommentUsers(user=extract_user_short(data["owner"]), text=text)
 
 
 def extract_usertag(data):
