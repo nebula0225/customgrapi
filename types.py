@@ -79,7 +79,7 @@ class UserShort(BaseModel):
     profile_pic_url: Optional[HttpUrl]
     # profile_pic_url_hd: Optional[HttpUrl]
     is_private: Optional[bool] = None
-    # is_verified: bool  # not found in hashtag_medias_v1
+    is_verified: Optional[bool] = None  # not found in hashtag_medias_v1
     # stories: List = []
 
 
@@ -91,6 +91,7 @@ class Usertag(BaseModel):
 class CommentUsers(BaseModel):
     user: UserShort
     text: str
+    did_report_as_spam: bool
 
 
 class Location(BaseModel):

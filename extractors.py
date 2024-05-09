@@ -188,7 +188,8 @@ def extract_resource_gql(data):
 def extract_comment_users(data):
     """Extract commented users"""
     text = data.get("text", "")
-    return CommentUsers(user=extract_user_short(data["owner"]), text=text)
+    did_report_as_spam = data.get("did_report_as_spam", False)
+    return CommentUsers(user=extract_user_short(data["owner"]), text=text, did_report_as_spam=did_report_as_spam)
 
 
 def extract_usertag(data):
