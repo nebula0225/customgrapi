@@ -206,7 +206,7 @@ class HashtagMixin:
                             continue
                     
                         # check exist caption
-                        if caption in caption_set or str(caption) in caption_set:
+                        if caption in caption_set:
                             print(f"[PASS]exist caption : {user_id}")
                             continue
                 
