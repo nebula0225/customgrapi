@@ -131,9 +131,7 @@ class Media(BaseModel):
     play_count: Optional[int] = None
     has_liked: Optional[bool] = None
     caption_text: str
-    # accessibility_caption: Optional[str]
     usertags: List[Usertag]
-    comment_users: List[CommentUsers]
     sponsor_tags: List[UserShort]
     video_url: Optional[HttpUrl] = None # for Video and IGTV
     view_count: Optional[int] = 0  # for Video and IGTV
@@ -141,6 +139,10 @@ class Media(BaseModel):
     title: Optional[str] = ""
     resources: List[Resource] = []
     clips_metadata: dict = {}
+    # add mine
+    comment_users: List[CommentUsers]
+    accessibility_caption: Optional[str] = None # explain image
+    is_ad: Optional[bool] = None
 
 
 class MediaXma(BaseModel):
