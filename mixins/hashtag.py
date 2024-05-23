@@ -202,7 +202,6 @@ class HashtagMixin:
                     caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
                     if caption != "":
                         if common.check_spam(caption, caption) == True:
-                            print(f"[PASS]spam caption : {user_id}")
                             continue
                     
                         # check exist caption
