@@ -11,6 +11,7 @@ from ..types import Hashtag, Media
 
 import time
 import h_common as common
+from concurrent import futures
 
 class HashtagMixin:
     """
@@ -162,90 +163,119 @@ class HashtagMixin:
             List of objects of Media and end_cursor
             has_next_page:boolean
         """
+        
+        
+        def fetch_hashtag_user_info(media_pk):
+            while True:
+                try:
+                    cl = common.get_random_client()
+                    cl.set_proxy(common.get_rotate_proxy())
+                    
+                    media_res = self.media_info_gql(media_pk)
+                    
+                    return media_res
+                except MediaNotFound as e:
+                    print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
+                    
+                    return False
+                except ClientUnauthorizedError as e:
+                    # change to new proxy
+                    print(f"[에러]ClientUnauthorizedError : 401 Client Error: Unauthorized for url")
+                    continue
+                except Exception as e:
+                    print(f"[ERROR]fetch_hashtag_user_info() : {e}")
+                    continue
+                
+        
         assert tab_key in (
             "edge_hashtag_to_top_posts",
             "edge_hashtag_to_media",
         ), 'You must specify one of the options for "tab_key" ("edge_hashtag_to_top_posts" or "edge_hashtag_to_media")'
         unique_set = set()
         medias = []
-        while True:
-            # data = self.public_a1_request(
-            #     f"/explore/tags/{name}/",
-            #     params={"max_id": end_cursor} if end_cursor else {},
-            # )["hashtag"]
-            data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
+        # data = self.public_a1_request(
+        #     f"/explore/tags/{name}/",
+        #     params={"max_id": end_cursor} if end_cursor else {},
+        # )["hashtag"]
+        data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
+            
+        page_info = data["edge_hashtag_to_media"]["page_info"]
+        end_cursor = page_info["end_cursor"]
+        has_next_page = page_info["has_next_page"] # True, False
+        edges = data[tab_key]["edges"]
+        print(f"get edge data : {len(edges)}")
+        
+        # check exist user
+        work_media_list = []
+        for edge in edges:
+            media_pk = edge["node"]["id"]
+            user_id = edge['node']['owner']['id'] # meida's owner id = user id
+            
+            # check uniq
+            if media_pk in unique_set:
+                continue
+            else:
+                unique_set.add(media_pk)
                 
-            page_info = data["edge_hashtag_to_media"]["page_info"]
-            end_cursor = page_info["end_cursor"]
-            has_next_page = page_info["has_next_page"] # True, False
-            edges = data[tab_key]["edges"]
-            print(f"get edge data : {len(edges)}")
-            for edge in edges:
-                media_pk = edge["node"]["id"]
-                user_id = edge['node']['owner']['id'] # meida's owner id = user id
+            # check exist user id
+            if user_id in user_id_set:
+                print(f"[PASS]exist user_id : {user_id}")
+                continue
+            else:
+                user_id_set.add(user_id)
+            
+            # check caption
+            if len(edge['node']['edge_media_to_caption']['edges']) != 0 and check_spam == True:
+                caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
+                if caption != "":
+                    if common.check_spam(caption, caption) == True:
+                        continue
                 
-                # check uniq
-                if media_pk in unique_set:
-                    continue
-                else:
-                    unique_set.add(media_pk)
+                    # check exist caption
+                    if caption in caption_set:
+                        print(f"[PASS]exist caption : {user_id}")
+                        continue
                     
-                # check exist user id
-                if user_id in user_id_set:
-                    print(f"[PASS]exist user_id : {user_id}")
-                    continue
-                else:
-                    user_id_set.add(user_id)
-                
-                # check caption
-                if len(edge['node']['edge_media_to_caption']['edges']) != 0 and check_spam == True:
-                    caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
-                    if caption != "":
-                        if common.check_spam(caption, caption) == True:
-                            continue
+            # work list add   
+            work_media_list.append(media_pk)
+            
+        results = []
+        with futures.ThreadPoolExecutor(max_workers = len(work_media_list)) as executor:
+            print(f"max worker : {executor._max_workers}")
+            # start Thread work
+            try:
+                for media_pk in work_media_list:
+                    # get media info
+                    t = executor.submit(fetch_hashtag_user_info, media_pk)
+                    results.append(t)
                     
-                        # check exist caption
-                        if caption in caption_set:
-                            print(f"[PASS]exist caption : {user_id}")
-                            continue
+                    # for stop delay
+                    time.sleep(0.5)
+            except KeyboardInterrupt as e:
+                print(f"KeyboardInterrupt : cancel by user")
                 
-                # check contains hashtag in caption
-                # media = extract_media_gql(edge["node"])
-                # if f"#{name}" not in media.caption_text:
-                #     continue
-                # Enrich media: Full user, usertags and video_url
-                while 1:
-                    try:
-                        media_res = self.media_info_gql(media_pk)
-                        medias.append(media_res)
-                        break
-                    except MediaNotFound as e:
-                        print()
-                        print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
-                        print(f"continue next node")
-                        print()
-                        break
-                    except ClientUnauthorizedError as e:
-                        # change to new proxy
-                        print()
-                        print(f"[에러]ClientUnauthorizedError : 401 Client Error: Unauthorized for url")
-                        new_proxy = common.get_rotate_proxy()
-                        self.set_proxy(new_proxy)
-                        print()
-                        time.sleep(2)
-            ######################################################
-            # infinity loop in hashtag_medias_top_a1
-            # https://github.com/adw0rd/instagrapi/issues/52
-            ######################################################
-            # Mikhail Andreev, [30.12.20 02:17]:
-            # Instagram always returns the same 9 medias for top
-            # I think we should return them without a loop
-            ######################################################
-            # if not page_info["has_next_page"] or not end_cursor:
-            #     break
-            # if max_amount and len(medias) >= max_amount:
-            #     break
-            break
+            # wait for running tasks
+            executor.shutdown(wait=True)
+            
+        # put return media data
+        for f in futures.as_completed(results):
+            out = f.result()
+            if out != False:
+                medias.append(out)
+            
+        ######################################################
+        # infinity loop in hashtag_medias_top_a1
+        # https://github.com/adw0rd/instagrapi/issues/52
+        ######################################################
+        # Mikhail Andreev, [30.12.20 02:17]:
+        # Instagram always returns the same 9 medias for top
+        # I think we should return them without a loop
+        ######################################################
+        # if not page_info["has_next_page"] or not end_cursor:
+        #     break
+        # if max_amount and len(medias) >= max_amount:
+        #     break
+        
         return medias, end_cursor, has_next_page
 
     def hashtag_medias_a1(
