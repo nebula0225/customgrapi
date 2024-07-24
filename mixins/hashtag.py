@@ -169,10 +169,12 @@ class HashtagMixin:
             while True:
                 try:
                     cl = common.get_random_client()
-                    self.set_settings(cl.get_settings())
-                    self.set_proxy(common.get_rotate_proxy())
+                    cl.set_proxy(common.get_rotate_proxy())
+                    media_res = cl.media_info_gql(media_pk)
                     
-                    media_res = self.media_info_gql(media_pk)
+                    # self.set_settings(cl.get_settings())
+                    # self.set_proxy(common.get_rotate_proxy())
+                    # media_res = self.media_info_gql(media_pk)
                     
                     return media_res
                 except MediaNotFound as e:
