@@ -169,7 +169,8 @@ class HashtagMixin:
             while True:
                 try:
                     cl = common.get_random_client()
-                    cl.set_proxy(common.get_rotate_proxy())
+                    self.set_settings(cl.get_settings())
+                    self.set_proxy(common.get_rotate_proxy())
                     
                     media_res = self.media_info_gql(media_pk)
                     
@@ -238,30 +239,31 @@ class HashtagMixin:
                     
             # work list add   
             work_media_list.append(media_pk)
-            
-        results = []
-        with futures.ThreadPoolExecutor(max_workers = len(work_media_list)) as executor:
-            print(f"max worker : {executor._max_workers}")
-            # start Thread work
-            try:
-                for media_pk in work_media_list:
-                    # get media info
-                    t = executor.submit(fetch_hashtag_user_info, media_pk)
-                    results.append(t)
+        
+        if len(work_media_list) != 0:
+            results = []
+            with futures.ThreadPoolExecutor(max_workers = len(work_media_list)) as executor:
+                print(f"max worker : {executor._max_workers}")
+                # start Thread work
+                try:
+                    for media_pk in work_media_list:
+                        # get media info
+                        t = executor.submit(fetch_hashtag_user_info, media_pk)
+                        results.append(t)
+                        
+                        # for stop delay
+                        time.sleep(0.5)
+                except KeyboardInterrupt as e:
+                    print(f"KeyboardInterrupt : cancel by user")
                     
-                    # for stop delay
-                    time.sleep(0.5)
-            except KeyboardInterrupt as e:
-                print(f"KeyboardInterrupt : cancel by user")
+                # wait for running tasks
+                executor.shutdown(wait=True)
                 
-            # wait for running tasks
-            executor.shutdown(wait=True)
-            
-        # put return media data
-        for f in futures.as_completed(results):
-            out = f.result()
-            if out != False:
-                medias.append(out)
+            # put return media data
+            for f in futures.as_completed(results):
+                out = f.result()
+                if out != False:
+                    medias.append(out)
             
         ######################################################
         # infinity loop in hashtag_medias_top_a1
