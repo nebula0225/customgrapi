@@ -179,7 +179,6 @@ class HashtagMixin:
                     return media_res
                 except MediaNotFound as e:
                     print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
-                    
                     return False
                 except ClientUnauthorizedError as e:
                     # change to new proxy

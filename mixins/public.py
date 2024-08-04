@@ -43,14 +43,14 @@ class PublicRequestMixin:
         session = requests.Session()
         try:
             retry_strategy = Retry(
-                total=3,
+                total=1,
                 status_forcelist=[429, 500, 502, 503, 504],
                 allowed_methods=["GET", "POST"],
                 backoff_factor=2,
             )
         except TypeError:
             retry_strategy = Retry(
-                total=3,
+                total=1,
                 status_forcelist=[429, 500, 502, 503, 504],
                 method_whitelist=["GET", "POST"],
                 backoff_factor=2,
@@ -68,7 +68,7 @@ class PublicRequestMixin:
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "en-US",
                 "User-Agent": (
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15"
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"
                 ),
             }
         )
@@ -136,11 +136,11 @@ class PublicRequestMixin:
         try:
             if data is not None:  # POST
                 response = self.public.data(
-                    url, data=data, params=params, proxies=self.public.proxies, timeout=10
+                    url, data=data, params=params, proxies=self.public.proxies, timeout=5
                 )
             else:  # GET
                 response = self.public.get(
-                    url, params=params, proxies=self.public.proxies, timeout=10
+                    url, params=params, proxies=self.public.proxies, timeout=5
                 )
 
             expected_length = int(response.headers.get("Content-Length") or 0)
