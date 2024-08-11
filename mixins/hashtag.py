@@ -211,7 +211,7 @@ class HashtagMixin:
         work_media_list = []
         for edge in edges:
             media_pk = edge["node"]["id"]
-            user_id = edge['node']['owner']['id'] # meida's owner id = user id
+            user_id = str(edge['node']['owner']['id']) # meida's owner id = user id
             
             # check uniq
             if media_pk in unique_set:
