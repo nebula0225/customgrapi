@@ -210,7 +210,7 @@ class MediaMixin:
             data["shortcode_media"]["location"] = self.location_complete(
                 extract_location(data["shortcode_media"]["location"])
             ).dict()
-        return extract_media_gql(data["shortcode_media"])
+        return data["shortcode_media"]
 
     def media_info_v1(self, media_pk: str) -> Media:
         """

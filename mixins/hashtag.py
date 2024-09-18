@@ -11,6 +11,7 @@ from ..types import Hashtag, Media
 
 import time
 import h_common as common
+import MyDataClass
 from concurrent import futures
 
 class HashtagMixin:
@@ -139,8 +140,8 @@ class HashtagMixin:
 
     def hashtag_medias_a1_chunk(
         self, name: str, user_id_set:set, caption_set:set,
-        tab_key: str = "", end_cursor: str = None, check_spam:bool = True
-    ) -> Tuple[List[Media], str]:
+        end_cursor: str = None, check_spam:bool = True
+    ) -> Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]:
         """
         Get chunk of medias and end_cursor by Public Web API
 
@@ -159,9 +160,8 @@ class HashtagMixin:
 
         Returns
         -------
-        Tuple[List[Media], str]
-            List of objects of Media and end_cursor
-            has_next_page:boolean
+        Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]
+            An object of HashTagInfo and List of objects of MediaDetailInfo
         """
         
         
@@ -171,49 +171,57 @@ class HashtagMixin:
                     cl = common.get_random_client()
                     cl.set_proxy(common.get_rotate_proxy())
                     media_res = cl.media_info_gql(media_pk)
+                    mediaDetailInfo = MyDataClass.MediaDetailInfo.convertInstaResponse(media_res)
                     
                     # self.set_settings(cl.get_settings())
                     # self.set_proxy(common.get_rotate_proxy())
                     # media_res = self.media_info_gql(media_pk)
                     
-                    return media_res
+                    return mediaDetailInfo
                 except MediaNotFound as e:
                     print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
                     return False
                 except ClientUnauthorizedError as e:
                     # change to new proxy
                     print(f"[에러]ClientUnauthorizedError : 401 Client Error: Unauthorized for url")
+                    cl.set_proxy(common.get_rotate_proxy())
                     continue
                 except Exception as e:
-                    print(f"[ERROR]fetch_hashtag_user_info() : {e}")
+                    print(f"[Exception ERROR]fetch_hashtag_user_info() : {e}")
                     continue
                 
         
-        assert tab_key in (
-            "edge_hashtag_to_top_posts",
-            "edge_hashtag_to_media",
-        ), 'You must specify one of the options for "tab_key" ("edge_hashtag_to_top_posts" or "edge_hashtag_to_media")'
+        # assert tab_key in (
+        #     "edge_hashtag_to_top_posts",
+        #     "edge_hashtag_to_media",
+        # ), 'You must specify one of the options for "tab_key" ("edge_hashtag_to_top_posts" or "edge_hashtag_to_media")'
+        
         unique_set = set()
-        medias = []
+        mediaDetailInfo_results = []
         # data = self.public_a1_request(
         #     f"/explore/tags/{name}/",
         #     params={"max_id": end_cursor} if end_cursor else {},
         # )["hashtag"]
         data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
-            
-        page_info = data["edge_hashtag_to_media"]["page_info"]
-        end_cursor = page_info["end_cursor"]
-        has_next_page = page_info["has_next_page"] # True, False
-        edges = data[tab_key]["edges"]
-        print(f"get edge data : {len(edges)}")
+        
+        hashTagInfo = MyDataClass.HashTagInfo.convertInstaResponse(data)
+        
+        edges_recent = data['edge_hashtag_to_media']["edges"] # 최신 게시물
+        edges_top = data['edge_hashtag_to_top_posts']["edges"] # 인기 게시물
+        edges = edges_top + edges_recent
+        
+        print(f"get recent[{len(edges_recent)}] + top edge data[{len(edges_top)}] : {len(edges)}")
         
         # check exist user
         work_media_list = []
         for edge in edges:
-            media_pk = edge["node"]["id"]
-            user_id = str(edge['node']['owner']['id']) # meida's owner id = user id
+            mediaShortInfo = MyDataClass.MediaShortInfo.convertInstaResponse(edge)
             
-            # check uniq
+            media_pk = mediaShortInfo.media_id
+            user_id = mediaShortInfo.userid
+            caption = mediaShortInfo.caption
+            
+            # check media_pk is uniq
             if media_pk in unique_set:
                 continue
             else:
@@ -227,15 +235,14 @@ class HashtagMixin:
                 user_id_set.add(user_id)
             
             # check caption
-            if len(edge['node']['edge_media_to_caption']['edges']) != 0 and check_spam == True:
-                caption = str(edge['node']['edge_media_to_caption']['edges'][0]['node']['text'])
+            if caption != None and check_spam == True:
                 if caption != "":
-                    if common.check_spam(caption, caption) == True:
-                        continue
-                
                     # check exist caption
                     if caption in caption_set:
                         print(f"[PASS]exist caption : {user_id}")
+                        continue
+                    
+                    if common.check_spam(caption, caption) == True:
                         continue
                     
             # work list add   
@@ -264,7 +271,7 @@ class HashtagMixin:
             for f in futures.as_completed(results):
                 out = f.result()
                 if out != False:
-                    medias.append(out)
+                    mediaDetailInfo_results.append(out)
             
         ######################################################
         # infinity loop in hashtag_medias_top_a1
@@ -279,7 +286,7 @@ class HashtagMixin:
         # if max_amount and len(medias) >= max_amount:
         #     break
         
-        return medias, end_cursor, has_next_page
+        return hashTagInfo, mediaDetailInfo_results
 
     def hashtag_medias_a1(
         self, name: str, amount: int = 27, tab_key: str = ""
