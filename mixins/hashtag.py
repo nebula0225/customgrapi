@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from ..exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError
+from ..exceptions import ClientError, HashtagNotFound, MediaNotFound, ClientUnauthorizedError, UserNotFound, ClientNotFoundError
 from ..extractors import (
     extract_hashtag_gql,
     extract_hashtag_v1,
@@ -166,6 +166,8 @@ class HashtagMixin:
         
         
         def fetch_hashtag_user_info(media_pk):
+            return_data = {}
+            
             while True:
                 try:
                     cl = common.get_random_client()
@@ -173,22 +175,48 @@ class HashtagMixin:
                     media_res = cl.media_info_gql(media_pk)
                     mediaDetailInfo = MyDataClass.MediaDetailInfo.convertInstaResponse(media_res)
                     
-                    # self.set_settings(cl.get_settings())
-                    # self.set_proxy(common.get_rotate_proxy())
-                    # media_res = self.media_info_gql(media_pk)
-                    
-                    return mediaDetailInfo
+                    return_data["media"] = mediaDetailInfo.dict()
                 except MediaNotFound as e:
                     print(f"hashtag.py -> hashtag_medias_a1_chunk() -> MediaNotFound")
-                    return False
+                    return None
                 except ClientUnauthorizedError as e:
                     # change to new proxy
                     print(f"[에러]ClientUnauthorizedError : 401 Client Error: Unauthorized for url")
                     cl.set_proxy(common.get_rotate_proxy())
                     continue
                 except Exception as e:
-                    print(f"[Exception ERROR]fetch_hashtag_user_info() : {e}")
+                    print(f"[media ERROR]fetch_hashtag_user_info() : {e}")
                     continue
+                
+                # get user info
+                while True:
+                    try:
+                        result = cl.user_info_by_username_gql2(mediaDetailInfo.username)
+                        if result is None:
+                            # print(f"can't find user : {mediaDetailInfo.username} - try get new username form userid")
+                            return None
+                        
+                        userInfoObj = MyDataClass.InstaUser.convertInstaResponse(result)
+                        return_data["insta_user"] = userInfoObj.dict()
+                        
+                        if check_spam is True:
+                            if common.check_spam(None, userInfoObj.biography) == True:
+                                return None
+                        
+                        # 최종 데이터 반환
+                        return return_data
+                    except (UserNotFound, ClientNotFoundError) as e:
+                        print(f"can't find user : {mediaDetailInfo.username}")
+                        return None
+                    except KeyError as e: # 특정인 대상으로 일어남 이유 모름 graphql 키가 없음으로 나옴 해당 유저는 지워야 함.
+                        print(f"{e} - KeyError user : {mediaDetailInfo.username}")
+                        return None
+                    except Exception as e:
+                        print(f"[isnta_user ERROR]fetch_hashtag_user_info() : {e}")
+                        del cl
+                        cl = common.get_random_client()
+                        cl.set_proxy(common.get_rotate_proxy())
+                        continue
                 
         
         # assert tab_key in (
@@ -251,7 +279,9 @@ class HashtagMixin:
         if len(work_media_list) != 0:
             results = []
             with futures.ThreadPoolExecutor(max_workers = len(work_media_list)) as executor:
+                print()
                 print(f"max worker : {executor._max_workers}")
+                print()
                 # start Thread work
                 try:
                     for media_pk in work_media_list:
@@ -270,7 +300,7 @@ class HashtagMixin:
             # put return media data
             for f in futures.as_completed(results):
                 out = f.result()
-                if out != False:
+                if out is not None:
                     mediaDetailInfo_results.append(out)
             
         ######################################################
