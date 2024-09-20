@@ -139,7 +139,7 @@ class HashtagMixin:
         ]
 
     def hashtag_medias_a1_chunk(
-        self, name: str, user_id_set:set, caption_set:set,
+        self, name: str, user_id_set:set, caption_set:set, old_media_id_set:set,
         end_cursor: str = None, check_spam:bool = True
     ) -> Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]:
         """
@@ -224,7 +224,6 @@ class HashtagMixin:
         #     "edge_hashtag_to_media",
         # ), 'You must specify one of the options for "tab_key" ("edge_hashtag_to_top_posts" or "edge_hashtag_to_media")'
         
-        unique_set = set()
         mediaDetailInfo_results = []
         # data = self.public_a1_request(
         #     f"/explore/tags/{name}/",
@@ -250,10 +249,10 @@ class HashtagMixin:
             caption = mediaShortInfo.caption
             
             # check media_pk is uniq
-            if media_pk in unique_set:
+            if media_pk in old_media_id_set:
                 continue
             else:
-                unique_set.add(media_pk)
+                old_media_id_set.add(media_pk)
                 
             # check exist user id
             if user_id in user_id_set:
