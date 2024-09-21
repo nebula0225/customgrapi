@@ -138,8 +138,8 @@ class HashtagMixin:
             for item in data["hashtag"]["edge_hashtag_to_related_tags"]["edges"]
         ]
 
-    def hashtag_medias_a1_chunk(
-        self, name: str, user_id_set:set, caption_set:set, old_media_id_set:set,
+    def hashtag_medias_a1_chunk(self, 
+        name: str, user_id_set:set, caption_set:set, old_media_id_set:set,
         end_cursor: str = None, check_spam:bool = True
     ) -> Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]:
         """
@@ -202,6 +202,8 @@ class HashtagMixin:
                         if check_spam is True:
                             if common.check_spam(None, userInfoObj.biography) == True:
                                 return None
+                        if userInfoObj.avg_like_count < 1:
+                            return None
                         
                         # 최종 데이터 반환
                         return return_data
@@ -215,7 +217,7 @@ class HashtagMixin:
                         print(f"[isnta_user ERROR]fetch_hashtag_user_info() : {e}")
                         del cl
                         cl = common.get_random_client()
-                        cl.set_proxy(common.get_rotate_proxy())
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
                         continue
                 
         
