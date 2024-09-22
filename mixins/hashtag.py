@@ -140,7 +140,7 @@ class HashtagMixin:
 
     def hashtag_medias_a1_chunk(self, 
         name: str, user_id_set:set, caption_set:set, old_media_id_set:set,
-        end_cursor: str = None, check_spam:bool = True
+        end_cursor: str = None, check_spam:bool = True, check_caption:bool = True
     ) -> Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]:
         """
         Get chunk of medias and end_cursor by Public Web API
@@ -264,15 +264,15 @@ class HashtagMixin:
                 user_id_set.add(user_id)
             
             # check caption
-            if caption != None and check_spam == True:
-                if caption != "":
-                    # check exist caption
-                    if caption in caption_set:
-                        print(f"[PASS]exist caption : {user_id}")
-                        continue
-                    
-                    if common.check_spam(caption, caption) == True:
-                        continue
+            if check_caption is True and caption != None and caption != "":
+                # check exist caption
+                if caption in caption_set:
+                    print(f"[PASS]exist caption : {user_id}")
+                    continue
+            # check spam
+            if check_spam is True:
+                if common.check_spam(caption, None) is True:
+                    continue
                     
             # work list add   
             work_media_list.append(media_pk)
