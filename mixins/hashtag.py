@@ -191,6 +191,7 @@ class HashtagMixin:
                 # get user info
                 while True:
                     try:
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
                         result = cl.user_info_by_username_gql2(mediaDetailInfo.username)
                         if result is None:
                             # print(f"can't find user : {mediaDetailInfo.username} - try get new username form userid")
