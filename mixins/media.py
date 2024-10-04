@@ -211,6 +211,39 @@ class MediaMixin:
                 extract_location(data["shortcode_media"]["location"])
             ).dict()
         return data["shortcode_media"]
+    
+    def media_info_gql2(self, shortcode: str) -> Media:
+        """
+        Get Media shortcode PK by Public Graphql API
+
+        Parameters
+        ----------
+        shortcode: str
+            media's shortcode
+
+        Returns
+        -------
+        Media
+            An object of Media type
+        """
+        """Use Client.media_info
+        """
+        data = self.public_graphql_post_request(
+            headers={"Content-Type": "application/json"},
+            data = json.dumps({
+                "variables": {
+                    "shortcode": shortcode,
+                    "fetch_tagged_user_count": None,
+                    "hoisted_comment_id": None,
+                    "hoisted_reply_id": None    
+                }, 
+                "doc_id" : "8845758582119845"
+            })
+        )
+        if not data.get("xdt_shortcode_media"):
+            raise MediaNotFound(shortcode=shortcode, **data)
+        
+        return data["xdt_shortcode_media"]
 
     def media_info_v1(self, media_pk: str) -> Media:
         """

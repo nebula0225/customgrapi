@@ -68,7 +68,7 @@ class PublicRequestMixin:
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "en-US",
                 "User-Agent": (
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15"
+                    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
                 ),
             }
         )
@@ -135,7 +135,7 @@ class PublicRequestMixin:
             time.sleep(self.request_timeout)
         try:
             if data is not None:  # POST
-                response = self.public.data(
+                response = self.public.post(
                     url, data=data, params=params, proxies=self.public.proxies, timeout=5
                 )
             else:  # GET
@@ -277,6 +277,41 @@ class PublicRequestMixin:
                 self.GRAPHQL_PUBLIC_API_URL,
                 data=data,
                 params=params,
+                headers=headers,
+                return_json=True,
+            )
+
+            if body_json.get("status", None) != "ok":
+                raise ClientGraphqlError(
+                    "Unexpected status '{}' in response. Message: '{}'".format(
+                        body_json.get("status", None), body_json.get("message", None)
+                    ),
+                    response=body_json,
+                )
+
+            return body_json["data"]
+
+        except ClientBadRequestError as e:
+            message = None
+            try:
+                body_json = e.response.json()
+                message = body_json.get("message", None)
+            except JSONDecodeError:
+                pass
+            raise ClientGraphqlError(
+                "Error: '{}'. Message: '{}'".format(e, message), response=e.response
+            )
+            
+    def public_graphql_post_request(
+        self,
+        data=None,
+        headers=None,
+    ):
+        assert data, "Must provide valid one of: data for post requests"
+        try:
+            body_json = self.public_request(
+                self.GRAPHQL_PUBLIC_API_URL,
+                data=data,
                 headers=headers,
                 return_json=True,
             )

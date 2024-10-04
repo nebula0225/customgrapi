@@ -165,14 +165,14 @@ class HashtagMixin:
         """
         
         
-        def fetch_hashtag_user_info(media_pk):
+        def fetch_hashtag_user_info(shortcode:str):
             return_data = {}
             
             while True:
                 try:
                     cl = common.get_random_client()
                     cl.set_proxy(common.get_rotate_proxy())
-                    media_res = cl.media_info_gql(media_pk)
+                    media_res = cl.media_info_gql2(shortcode)
                     mediaDetailInfo = MyDataClass.MediaDetailInfo.convertInstaResponse(media_res)
                     
                     return_data["media"] = mediaDetailInfo.dict()
@@ -215,7 +215,7 @@ class HashtagMixin:
                         print(f"{e} - KeyError user : {mediaDetailInfo.username}")
                         return None
                     except Exception as e:
-                        print(f"[isnta_user ERROR]fetch_hashtag_user_info() : {e}")
+                        print(f"[isnta_user ERROR]user_info_by_username_gql2() : {e}")
                         del cl
                         cl = common.get_random_client()
                         cl.set_proxy(common.get_rotate_proxy(free_mode=True))
@@ -248,6 +248,7 @@ class HashtagMixin:
             mediaShortInfo = MyDataClass.MediaShortInfo.convertInstaResponse(edge)
             
             media_pk = mediaShortInfo.media_id
+            shortcode = mediaShortInfo.shortcode
             user_id = mediaShortInfo.userid
             caption = mediaShortInfo.caption
             
@@ -276,7 +277,7 @@ class HashtagMixin:
                     continue
                     
             # work list add   
-            work_media_list.append(media_pk)
+            work_media_list.append(shortcode)
         
         if len(work_media_list) != 0:
             results = []
@@ -286,9 +287,9 @@ class HashtagMixin:
                 print()
                 # start Thread work
                 try:
-                    for media_pk in work_media_list:
+                    for shortcode in work_media_list:
                         # get media info
-                        t = executor.submit(fetch_hashtag_user_info, media_pk)
+                        t = executor.submit(fetch_hashtag_user_info, shortcode)
                         results.append(t)
                         
                         # for stop delay
