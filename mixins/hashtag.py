@@ -200,11 +200,20 @@ class HashtagMixin:
                         userInfoObj = MyDataClass.InstaUser.convertInstaResponse(result)
                         return_data["insta_user"] = userInfoObj.dict()
                         
+                        # check spam and bad user
                         if check_spam is True:
                             if common.check_spam(None, userInfoObj.biography) == True:
                                 return None
                         if userInfoObj.avg_like_count < 1:
                             return None
+                        if (
+                            userInfoObj.avg_comment_count == 0
+                            and userInfoObj.highlight_reel_count == 0
+                            and userInfoObj.category_name == None
+                            and userInfoObj.is_business_account == False
+                            and userInfoObj.has_clips == False
+                            and userInfoObj.video_count == 0
+                        ): return None
                         
                         # 최종 데이터 반환
                         return return_data
