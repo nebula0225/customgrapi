@@ -139,8 +139,12 @@ class HashtagMixin:
         ]
 
     def hashtag_medias_a1_chunk(self, 
-        name: str, user_id_set:set, caption_set:set, old_media_id_set:set,
-        end_cursor: str = None, check_spam:bool = True, check_caption:bool = True
+        name: str, 
+        end_cursor: str, 
+        user_id_set: set, 
+        caption_set: set, 
+        check_spam: bool = True, 
+        check_caption: bool = True
     ) -> Tuple[MyDataClass.HashTagInfo, List[MyDataClass.MediaDetailInfo]]:
         """
         Get chunk of medias and end_cursor by Public Web API
@@ -200,10 +204,12 @@ class HashtagMixin:
                         userInfoObj = MyDataClass.InstaUser.convertInstaResponse(result)
                         return_data["insta_user"] = userInfoObj.dict()
                         
-                        # check spam and bad user
-                        if check_spam is True:
+                        # check spam
+                        if check_spam == True:
                             if common.check_spam(None, userInfoObj.biography) == True:
                                 return None
+                            
+                        # check bad user
                         if userInfoObj.avg_like_count < 1:
                             return None
                         if (
@@ -261,28 +267,23 @@ class HashtagMixin:
             user_id = mediaShortInfo.userid
             caption = mediaShortInfo.caption
             
-            # check media_pk is uniq
-            if media_pk in old_media_id_set:
-                continue
-            else:
-                old_media_id_set.add(media_pk)
-                
             # check exist user id
             if user_id in user_id_set:
                 print(f"[PASS]exist user_id : {user_id}")
                 continue
             else:
                 user_id_set.add(user_id)
+                
+            # check spam
+            if check_spam == True:
+                if common.check_spam(caption, None) == True:
+                    continue
             
-            # check caption
-            if check_caption is True and caption != None and caption != "":
+            # check exist caption
+            if check_caption == True and caption != None and caption != "" and caption != " " and len(caption) > 10:
                 # check exist caption
                 if caption in caption_set:
                     print(f"[PASS]exist caption : {user_id}")
-                    continue
-            # check spam
-            if check_spam is True:
-                if common.check_spam(caption, None) is True:
                     continue
                     
             # work list add   
