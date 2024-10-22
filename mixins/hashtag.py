@@ -140,8 +140,7 @@ class HashtagMixin:
         ]
 
     def hashtag_medias_a1_chunk(self, 
-        name: str, 
-        end_cursor: str, 
+        hashTagInfo: MyDataClass.HashTagInfo,
         user_id_set: set, 
         caption_set: set, 
         check_spam: bool = True, 
@@ -257,12 +256,8 @@ class HashtagMixin:
         # edges_top = data['edge_hashtag_to_top_posts']["edges"] # 인기 게시물
         # edges = edges_top + edges_recent
         
-        # get hashtag info
-        hikerHasTagInfo = Hiker.getHashTagInfo(name)
-        hashTagInfo = MyDataClass.HashTagInfo.convertHiker(hikerHasTagInfo)
-        if hashTagInfo.count == None:
-            print(f"[WARNING]HikerHasTagInfo() - hashTagInfo.media_count is None")
-            return None, None
+        name = hashTagInfo.hashtag_name
+        end_cursor = hashTagInfo.end_cursor
         
         # get hashtag's media info
         hikerHashTagMediaList = Hiker.getHashTagMedias(name, end_cursor)
