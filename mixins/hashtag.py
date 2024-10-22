@@ -11,6 +11,7 @@ from ..types import Hashtag, Media
 
 import time
 import h_common as common
+import Hiker
 import MyDataClass
 from concurrent import futures
 
@@ -243,24 +244,38 @@ class HashtagMixin:
         # ), 'You must specify one of the options for "tab_key" ("edge_hashtag_to_top_posts" or "edge_hashtag_to_media")'
         
         mediaDetailInfo_results = []
+        
         # data = self.public_a1_request(
         #     f"/explore/tags/{name}/",
         #     params={"max_id": end_cursor} if end_cursor else {},
         # )["hashtag"]
-        data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
         
-        hashTagInfo = MyDataClass.HashTagInfo.convertInstaResponse(data)
+        # 24-10-22 blocked
+        # data = self.hashtag_info_gql(name, amount=1000, end_cursor=end_cursor)
+        # hashTagInfo = MyDataClass.HashTagInfo.convertInstaResponse(data)
+        # edges_recent = data['edge_hashtag_to_media']["edges"] # 최신 게시물
+        # edges_top = data['edge_hashtag_to_top_posts']["edges"] # 인기 게시물
+        # edges = edges_top + edges_recent
         
-        edges_recent = data['edge_hashtag_to_media']["edges"] # 최신 게시물
-        edges_top = data['edge_hashtag_to_top_posts']["edges"] # 인기 게시물
-        edges = edges_top + edges_recent
+        # get hashtag info
+        hikerHasTagInfo = Hiker.getHashTagInfo(name)
+        hashTagInfo = MyDataClass.HashTagInfo.convertHiker(hikerHasTagInfo)
+        if hashTagInfo.count == None:
+            print(f"[WARNING]HikerHasTagInfo() - hashTagInfo.media_count is None")
+            return None, None
         
-        print(f"get recent[{len(edges_recent)}] + top edge data[{len(edges_top)}] : {len(edges)}")
+        # get hashtag's media info
+        hikerHashTagMediaList = Hiker.getHashTagMedias(name, end_cursor)
+        hashTagInfo.end_cursor = hikerHashTagMediaList[1]
+        mediasData = hikerHashTagMediaList[0]
+        
+        # print(f"get recent[{len(edges_recent)}] + top edge data[{len(edges_top)}] : {len(edges)}")
+        print(f"get hiker data : {len(mediasData)}")
         
         # check exist user
         work_media_list = []
-        for edge in edges:
-            mediaShortInfo = MyDataClass.MediaShortInfo.convertInstaResponse(edge)
+        for edge in mediasData:
+            mediaShortInfo = MyDataClass.MediaShortInfo.convertHiker(edge)
             
             media_pk = mediaShortInfo.media_id
             shortcode = mediaShortInfo.shortcode
