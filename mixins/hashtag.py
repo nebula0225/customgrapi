@@ -195,7 +195,7 @@ class HashtagMixin:
                 # get user info
                 while True:
                     try:
-                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=False))
                         result = cl.user_info_by_username_gql2(mediaDetailInfo.username)
                         if result is None:
                             # print(f"can't find user : {mediaDetailInfo.username} - try get new username form userid")
@@ -211,6 +211,7 @@ class HashtagMixin:
                             
                         # check bad user
                         if userInfoObj.avg_like_count < 1:
+                            print(f"bad user avg_like_count < 1 : {mediaDetailInfo.username}")
                             return None
                         if (
                             userInfoObj.avg_comment_count == 0
@@ -219,7 +220,9 @@ class HashtagMixin:
                             and userInfoObj.is_business_account == False
                             and userInfoObj.has_clips == False
                             and userInfoObj.video_count == 0
-                        ): return None
+                        ): 
+                            print(f"bad user Many condition : {mediaDetailInfo.username}")
+                            return None
                         
                         # 최종 데이터 반환
                         return return_data
@@ -233,7 +236,7 @@ class HashtagMixin:
                         print(f"[isnta_user ERROR]user_info_by_username_gql2() : {e}")
                         del cl
                         cl = common.get_random_client()
-                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=False))
                         continue
                 
         
@@ -259,10 +262,27 @@ class HashtagMixin:
         name = hashTagInfo.hashtag_name
         end_cursor = hashTagInfo.end_cursor
         
-        # get hashtag's media info
-        hikerHashTagMediaList = Hiker.getHashTagMedias(name, end_cursor)
-        hashTagInfo.end_cursor = hikerHashTagMediaList[1]
-        mediasData = hikerHashTagMediaList[0]
+        # get hashtag's media info V1
+        # hikerHashTagMediaList = Hiker.getHashTagMediasV1(name, end_cursor)
+        # hashTagInfo.end_cursor = hikerHashTagMediaList[1]
+        # mediasData = hikerHashTagMediaList[0]
+        
+        # get hashtag's media info V2
+        hikerHashTagMediaObj = Hiker.getHashTagMediasV2(name, end_cursor)
+        hashTagInfo.end_cursor = hikerHashTagMediaObj['next_page_id']
+        hashTagInfo.has_next_page = hikerHashTagMediaObj['response']['next_page']
+        mediasData = []
+        rootData = hikerHashTagMediaObj['response']['sections']
+        for layout in rootData:
+            layout_type = layout['layout_type']
+            if layout_type == 'one_by_two_left':
+                mediasData += layout['layout_content']['one_by_two_item']['clips']['items']
+                mediasData += layout['layout_content']['fill_items']
+            elif layout_type == 'media_grid':
+                mediasData += layout['layout_content']['medias']
+            else:
+                print(f"[ERROR]rootData layout_type : {layout_type}")
+                return None
         
         # print(f"get recent[{len(edges_recent)}] + top edge data[{len(edges_top)}] : {len(edges)}")
         print(f"get hiker data : {len(mediasData)}")
@@ -270,7 +290,9 @@ class HashtagMixin:
         # check exist user
         work_media_list = []
         for edge in mediasData:
-            mediaShortInfo = MyDataClass.MediaShortInfo.convertHiker(edge)
+            edge = edge['media']
+            
+            mediaShortInfo = MyDataClass.MediaShortInfo.convertHikerV2(edge)
             
             media_pk = mediaShortInfo.media_id
             shortcode = mediaShortInfo.shortcode
@@ -279,7 +301,7 @@ class HashtagMixin:
             
             # check exist user id
             if user_id in user_id_set:
-                print(f"[PASS]exist user_id : {user_id}")
+                print(f"[PASS]exist user_id : {user_id}-{edge['user']['username']}-{edge['user']['full_name']}")
                 continue
             else:
                 user_id_set.add(user_id)
