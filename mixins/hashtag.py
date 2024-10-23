@@ -195,7 +195,7 @@ class HashtagMixin:
                 # get user info
                 while True:
                     try:
-                        cl.set_proxy(common.get_rotate_proxy(free_mode=False))
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
                         result = cl.user_info_by_username_gql2(mediaDetailInfo.username)
                         if result is None:
                             # print(f"can't find user : {mediaDetailInfo.username} - try get new username form userid")
@@ -236,7 +236,7 @@ class HashtagMixin:
                         print(f"[isnta_user ERROR]user_info_by_username_gql2() : {e}")
                         del cl
                         cl = common.get_random_client()
-                        cl.set_proxy(common.get_rotate_proxy(free_mode=False))
+                        cl.set_proxy(common.get_rotate_proxy(free_mode=True))
                         continue
                 
         
