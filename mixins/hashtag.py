@@ -213,16 +213,16 @@ class HashtagMixin:
                         if userInfoObj.avg_like_count < 1:
                             print(f"bad user avg_like_count < 1 : {mediaDetailInfo.username}")
                             return None
-                        if (
-                            userInfoObj.avg_comment_count == 0
-                            and userInfoObj.highlight_reel_count == 0
-                            and userInfoObj.category_name == None
-                            and userInfoObj.is_business_account == False
-                            and userInfoObj.has_clips == False
-                            and userInfoObj.video_count == 0
-                        ): 
-                            print(f"bad user Many condition : {mediaDetailInfo.username}")
-                            return None
+                        # if (
+                        #     userInfoObj.avg_comment_count == 0
+                        #     and userInfoObj.highlight_reel_count == 0
+                        #     and userInfoObj.category_name == None
+                        #     and userInfoObj.is_business_account == False
+                        #     and userInfoObj.has_clips == False
+                        #     and userInfoObj.video_count == 0
+                        # ): 
+                        #     print(f"bad user Many condition : {mediaDetailInfo.username}")
+                        #     return None
                         
                         # 최종 데이터 반환
                         return return_data
