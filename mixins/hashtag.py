@@ -268,9 +268,13 @@ class HashtagMixin:
         # mediasData = hikerHashTagMediaList[0]
         
         # get hashtag's media info V2
-        hikerHashTagMediaObj = Hiker.getHashTagMediasV2(name, end_cursor)
+        try:
+            hikerHashTagMediaObj = Hiker.getHashTagMediasV2(name, end_cursor)
+        except Exception as e:
+            print(f"[ERROR]getHashTagMediasV2 : {e}")
+            return None
         hashTagInfo.end_cursor = hikerHashTagMediaObj['next_page_id']
-        hashTagInfo.has_next_page = hikerHashTagMediaObj['response']['next_page']
+        hashTagInfo.has_next_page = bool(hikerHashTagMediaObj['response']['next_page'])
         mediasData = []
         rootData = hikerHashTagMediaObj['response']['sections']
         for layout in rootData:
